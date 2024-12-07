@@ -114,6 +114,30 @@ const html = `
             width: 16px;
             height: 16px;
         }
+        .view-atoms-btn {
+            background-color: var(--figma-color-bg);
+            color: var(--figma-color-text);
+            border: 1px solid var(--figma-color-border);
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+        }
+        .view-atoms-btn:hover {
+            background-color: var(--figma-color-bg-hover);
+            transform: translateY(-1px);
+        }
+        .view-atoms-btn svg {
+            width: 16px;
+            height: 16px;
+        }
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -471,6 +495,110 @@ const html = `
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
+
+        /* Estilos para el modal de branding */
+        .branding-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .branding-modal-content {
+            background: var(--figma-color-bg);
+            padding: 24px;
+            border-radius: 8px;
+            width: 400px;
+            max-width: 90%;
+        }
+
+        .branding-modal h2 {
+            margin: 0 0 16px 0;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .branding-options {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .branding-option {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--figma-color-border);
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .branding-option:hover {
+            background: var(--figma-color-bg-hover);
+        }
+
+        .branding-option.selected {
+            border-color: var(--figma-color-border-brand);
+            background: var(--figma-color-bg-brand);
+            color: var(--figma-color-text-onbrand);
+        }
+
+        .color-fields {
+            display: none;
+            gap: 12px;
+            flex-direction: column;
+        }
+
+        .color-field {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .color-field label {
+            flex: 1;
+        }
+
+        .color-field input {
+            width: 100px;
+            padding: 4px 8px;
+            border: 1px solid var(--figma-color-border);
+            border-radius: 4px;
+            background: var(--figma-color-bg);
+            color: var(--figma-color-text);
+        }
+
+        .branding-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 24px;
+        }
+
+        .branding-actions button {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-secondary {
+            background: var(--figma-color-bg-secondary);
+            color: var(--figma-color-text);
+        }
+
+        .btn-primary {
+            background: var(--figma-color-bg-brand);
+            color: var(--figma-color-text-onbrand);
+        }
     </style>
 </head>
 <body>
@@ -487,8 +615,8 @@ const html = `
                     Atoms
                 </h2>
                 <p class="section-description">Basic building blocks like buttons, inputs, and labels that form the foundation of your design system.</p>
-                <button class="view-all-button" onclick="openAtomsModal()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <button class="view-atoms-btn" onclick="viewAtoms()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M4 6h16M4 12h16M4 18h16"/>
                     </svg>
                     View Atoms
@@ -652,6 +780,35 @@ const html = `
         </div>
     </div>
 
+    <!-- Modal de branding -->
+    <div id="brandingModal" class="branding-modal">
+        <div class="branding-modal-content">
+            <h2>Do you have branding colors?</h2>
+            <div class="branding-options">
+                <div class="branding-option" onclick="selectBrandingOption(event, 'yes')">Yes</div>
+                <div class="branding-option" onclick="selectBrandingOption(event, 'no')">No</div>
+            </div>
+            <div id="colorFields" class="color-fields">
+                <div class="color-field">
+                    <label>Primary Color</label>
+                    <input type="text" id="primaryColor" placeholder="#0c8ce9">
+                </div>
+                <div class="color-field">
+                    <label>Secondary Color</label>
+                    <input type="text" id="secondaryColor" placeholder="#6c757d">
+                </div>
+                <div class="color-field">
+                    <label>Tertiary Color</label>
+                    <input type="text" id="tertiaryColor" placeholder="#394360">
+                </div>
+            </div>
+            <div class="branding-actions">
+                <button class="btn-secondary" onclick="closeBrandingModal()">Cancel</button>
+                <button class="btn-primary" onclick="confirmBranding()">Continue</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let buttonConfig = {
             variant: 'default',
@@ -663,17 +820,35 @@ const html = `
             width: 'hug'
         };
 
+        // Configuración global de colores
+        let globalColors = {
+            primary: '#0c8ce9',
+            secondary: '#6c757d',
+            tertiary: '#394360',
+            success: '#198f51',
+            warning: '#f3c11b',
+            danger: '#e03e1a'
+        };
+
         // Funciones para el modal de átomos
         function openAtomsModal() {
+            console.log('Opening atoms modal...');
             const modal = document.getElementById('atomsModal');
-            modal.style.display = 'flex';
-            modal.querySelector('.modal').classList.add('show');
+            if (modal) {
+                modal.style.display = 'flex';
+                modal.querySelector('.modal').classList.add('show');
+            } else {
+                console.error('Atoms modal not found');
+            }
         }
 
         function closeAtomsModal() {
+            console.log('Closing atoms modal...');
             const modal = document.getElementById('atomsModal');
-            modal.style.display = 'none';
-            modal.querySelector('.modal').classList.remove('show');
+            if (modal) {
+                modal.style.display = 'none';
+                modal.querySelector('.modal').classList.remove('show');
+            }
         }
 
         function createButton() {
@@ -792,6 +967,66 @@ const html = `
             }, '*');
             closeButtonConfig();
         }
+
+        // Funciones para el modal de branding
+        function viewAtoms() {
+            console.log('Opening branding modal...');
+            const brandingModal = document.getElementById('brandingModal');
+            if (brandingModal) {
+                brandingModal.style.display = 'flex';
+            } else {
+                console.error('Branding modal not found');
+            }
+        }
+
+        function closeBrandingModal() {
+            console.log('Closing branding modal...');
+            const brandingModal = document.getElementById('brandingModal');
+            if (brandingModal) {
+                brandingModal.style.display = 'none';
+            }
+        }
+
+        function selectBrandingOption(event, option) {
+            console.log('Selected option:', option);
+            const options = document.querySelectorAll('.branding-option');
+            options.forEach(opt => opt.classList.remove('selected'));
+            event.target.classList.add('selected');
+            
+            const colorFields = document.getElementById('colorFields');
+            if (colorFields) {
+                colorFields.style.display = option === 'yes' ? 'flex' : 'none';
+            }
+        }
+
+        function confirmBranding() {
+            console.log('Confirming branding...');
+            const selectedOption = document.querySelector('.branding-option.selected');
+            if (selectedOption && selectedOption.textContent === 'Yes') {
+                // Actualizar colores globales con los valores ingresados
+                globalColors = {
+                    primary: document.getElementById('primaryColor')?.value || globalColors.primary,
+                    secondary: document.getElementById('secondaryColor')?.value || globalColors.secondary,
+                    tertiary: document.getElementById('tertiaryColor')?.value || globalColors.tertiary,
+                    success: globalColors.success,
+                    warning: globalColors.warning,
+                    danger: globalColors.danger
+                };
+                console.log('Updated global colors:', globalColors);
+            }
+            
+            closeBrandingModal();
+            openAtomsModal();
+        }
+
+        // Asegurarse de que los eventos estén conectados cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, setting up event listeners...');
+            const viewAtomsBtn = document.querySelector('.view-atoms-btn');
+            if (viewAtomsBtn) {
+                viewAtomsBtn.addEventListener('click', viewAtoms);
+            }
+        });
     </script>
 </body>
 </html>
