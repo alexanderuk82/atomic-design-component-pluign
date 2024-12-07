@@ -469,6 +469,17 @@ const html = `
             opacity: 1;
         }
 
+        /* Secondary Button */
+        .preview-button.secondary {
+            background: var(--secondary-color, #6c757d);
+            color: white;
+            border-color: transparent;
+        }
+        .preview-button.secondary:hover {
+            background: var(--secondary-color, #6c757d);
+            opacity: 1;
+        }
+
         /* Secondary Outline Button */
         .preview-button.secondary-outline {
             background: none;
@@ -802,6 +813,7 @@ const html = `
                 <h4 class="config-section-title">Variant</h4>
                 <div class="variant-grid">
                     <div class="variant-option selected" onclick="updateButtonVariant('primary')">Primary</div>
+                    <div class="variant-option" onclick="updateButtonVariant('secondary')">Secondary</div>
                     <div class="variant-option" onclick="updateButtonVariant('secondary-outline')">Secondary Outline</div>
                     <div class="variant-option" onclick="updateButtonVariant('primary-outline')">Primary Outline</div>
                     <div class="variant-option" onclick="updateButtonVariant('destructive')">Destructive</div>
@@ -1086,6 +1098,11 @@ const html = `
                         style.color = 'white';
                         style.borderColor = 'transparent';
                         break;
+                    case 'secondary':
+                        style.background = globalColors.secondary;
+                        style.color = 'white';
+                        style.borderColor = 'transparent';
+                        break;
                     case 'primary-outline':
                         style.background = 'none';
                         style.borderColor = globalColors.primary;
@@ -1254,6 +1271,8 @@ const html = `
                     if (previewButton) {
                         if (buttonConfig.variant === 'primary' && colorKey === 'primary') {
                             previewButton.style.backgroundColor = hexColor;
+                        } else if (buttonConfig.variant === 'secondary' && colorKey === 'secondary') {
+                            previewButton.style.backgroundColor = hexColor;
                         } else if (buttonConfig.variant === 'secondary-outline' && colorKey === 'secondary') {
                             previewButton.style.borderColor = hexColor;
                             previewButton.style.color = hexColor;
@@ -1317,6 +1336,8 @@ const html = `
                     const previewButton = document.querySelector('.preview-button');
                     if (previewButton) {
                         if (buttonConfig.variant === 'primary' && colorType === 'primary') {
+                            previewButton.style.backgroundColor = value;
+                        } else if (buttonConfig.variant === 'secondary' && colorType === 'secondary') {
                             previewButton.style.backgroundColor = value;
                         } else if (buttonConfig.variant === 'secondary-outline' && colorType === 'secondary') {
                             previewButton.style.borderColor = value;
@@ -1383,6 +1404,10 @@ figma.ui.onmessage = async (msg: { type: string, config?: any }) => {
     switch(config.variant) {
       case 'primary':
         button.fills = [{type: 'SOLID', color: {r: 0.05, g: 0.6, b: 1}}];
+        button.strokes = [];
+        break;
+      case 'secondary':
+        button.fills = [{type: 'SOLID', color: {r: 0.8, g: 0.8, b: 0.8}}];
         button.strokes = [];
         break;
       case 'secondary-outline':
