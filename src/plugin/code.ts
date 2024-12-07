@@ -566,6 +566,12 @@ const html = `
             flex: 1;
         }
 
+        .color-field .input-group {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
         .color-field input {
             width: 100px;
             padding: 4px 8px;
@@ -573,6 +579,19 @@ const html = `
             border-radius: 4px;
             background: var(--figma-color-bg);
             color: var(--figma-color-text);
+        }
+
+        .color-preview {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            border: 1px solid var(--figma-color-border);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .color-preview:hover {
+            transform: scale(1.1);
         }
 
         .branding-actions {
@@ -791,15 +810,24 @@ const html = `
             <div id="colorFields" class="color-fields">
                 <div class="color-field">
                     <label>Primary Color</label>
-                    <input type="text" id="primaryColor" placeholder="#0c8ce9">
+                    <div class="input-group">
+                        <input type="text" id="primaryColor" placeholder="#0c8ce9" onchange="updateColorPreview(this)">
+                        <div class="color-preview" id="primaryColorPreview" style="background-color: #0c8ce9"></div>
+                    </div>
                 </div>
                 <div class="color-field">
                     <label>Secondary Color</label>
-                    <input type="text" id="secondaryColor" placeholder="#6c757d">
+                    <div class="input-group">
+                        <input type="text" id="secondaryColor" placeholder="#6c757d" onchange="updateColorPreview(this)">
+                        <div class="color-preview" id="secondaryColorPreview" style="background-color: #6c757d"></div>
+                    </div>
                 </div>
                 <div class="color-field">
                     <label>Tertiary Color</label>
-                    <input type="text" id="tertiaryColor" placeholder="#394360">
+                    <div class="input-group">
+                        <input type="text" id="tertiaryColor" placeholder="#394360" onchange="updateColorPreview(this)">
+                        <div class="color-preview" id="tertiaryColorPreview" style="background-color: #394360"></div>
+                    </div>
                 </div>
             </div>
             <div class="branding-actions">
@@ -1003,8 +1031,7 @@ const html = `
             console.log('Confirming branding...');
             const selectedOption = document.querySelector('.branding-option.selected');
             if (selectedOption && selectedOption.textContent === 'Yes') {
-                // Actualizar colores globales con los valores ingresados
-                globalColors = {
+                const colors = {
                     primary: document.getElementById('primaryColor')?.value || globalColors.primary,
                     secondary: document.getElementById('secondaryColor')?.value || globalColors.secondary,
                     tertiary: document.getElementById('tertiaryColor')?.value || globalColors.tertiary,
@@ -1012,11 +1039,37 @@ const html = `
                     warning: globalColors.warning,
                     danger: globalColors.danger
                 };
+
+                // Update color previews
+                Object.keys(colors).forEach(key => {
+                    const preview = document.getElementById(key + 'ColorPreview');
+                    if (preview) {
+                        preview.style.backgroundColor = colors[key];
+                    }
+                });
+
+                // Save colors and update global state
+                parent.postMessage({ 
+                    pluginMessage: { 
+                        type: 'save-colors',
+                        colors: colors
+                    }
+                }, '*');
+                
+                globalColors = colors;
                 console.log('Updated global colors:', globalColors);
             }
             
             closeBrandingModal();
             openAtomsModal();
+        }
+
+        function updateColorPreview(input) {
+            const previewId = input.id + 'Preview';
+            const preview = document.getElementById(previewId);
+            if (preview) {
+                preview.style.backgroundColor = input.value;
+            }
         }
 
         // Asegurarse de que los eventos estén conectados cuando el DOM esté listo
