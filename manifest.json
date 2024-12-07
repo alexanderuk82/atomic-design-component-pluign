@@ -1,0 +1,13 @@
+{
+  "name": "Atomic Design Components",
+  "id": "1447124280260697980",
+  "api": "1.0.0",
+  "main": "dist/code.js",
+  "editorType": [
+    "figma"
+  ],
+  "permissions": [],
+  "networkAccess": {
+    "allowedDomains": ["https://unpkg.com"]
+  }
+}
