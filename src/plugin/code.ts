@@ -565,6 +565,19 @@ const html = `
             stroke: #FFFFFF !important;
         }
         
+        /* Estilos para los border styles */
+        .preview-button.border-default {
+            border-radius: 6px;
+        }
+        
+        .preview-button.border-square {
+            border-radius: 0;
+        }
+        
+        .preview-button.border-pill {
+            border-radius: 100px;
+        }
+        
         .generate-button-fixed {
             position: sticky;
             bottom: 0;
@@ -852,9 +865,7 @@ const html = `
             <div class="config-header">
                 <h3 class="config-title">Settings</h3>
                 <button class="close-button" onclick="closeButtonConfig()">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M18 6L6 18M12 5l7 7-7 7"/>
-                    </svg>
+                   <svg class="svg" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12"><path fill="#fff" fill-opacity="1" fill-rule="nonzero" stroke="none" d="m6 5.293 4.789-4.79.707.708-4.79 4.79 4.79 4.789-.707.707-4.79-4.79-4.789 4.79-.707-.707L5.293 6 .502 1.211 1.21.504z"></path></svg>
                 </button>
             </div>
 
@@ -923,6 +934,15 @@ const html = `
                 <div class="variant-grid">
                     <div class="variant-option selected" onclick="updateButtonWidth('hug')">Hug</div>
                     <div class="variant-option" onclick="updateButtonWidth('full')">Full</div>
+                </div>
+            </div>
+
+            <div class="config-section">
+                <h4 class="config-section-title">Border Style</h4>
+                <div class="variant-grid">
+                    <div class="variant-option selected" onclick="updateBorderStyle('default')">Default</div>
+                    <div class="variant-option" onclick="updateBorderStyle('square')">Square</div>
+                    <div class="variant-option" onclick="updateBorderStyle('pill')">Pill</div>
                 </div>
             </div>
 
@@ -1007,7 +1027,8 @@ const html = `
             iconPosition: 'left',
             state: 'default',
             width: 'hug',
-            textColor: 'dark'  // Valor por defecto
+            textColor: 'dark',
+            borderStyle: 'default'
         };
 
         // Configuración global de colores por defecto
@@ -1130,20 +1151,30 @@ const html = `
             selectedElement.classList.add('selected');
         }
 
+        function updateBorderStyle(style) {
+            buttonConfig.borderStyle = style;
+            updatePreview();
+            const section = event.target.closest('.config-section');
+            updateSelectedOption(section, style);
+        }
+
         function updatePreview() {
             const preview = document.getElementById('buttonPreview');
             
-            // Reset classes and styles
-            preview.className = 'preview-button';
+            // Reset classes
+            preview.className = '';
             
-            // Aplicar clases según la configuración
+            // Aplicar clases base y configuraciones
+            preview.classList.add('preview-button');
             preview.classList.add(buttonConfig.size);
             preview.classList.add(buttonConfig.variant);
             preview.classList.add(buttonConfig.state);
+            preview.classList.add('border-' + buttonConfig.borderStyle);
             
             // Establecer el color del texto usando data-attribute
             preview.setAttribute('data-text-color', buttonConfig.textColor);
             
+            // Aplicar ancho según configuración
             if (buttonConfig.width === 'full') {
                 preview.style.width = '100%';
             } else {
@@ -1172,7 +1203,7 @@ const html = `
             
             preview.innerHTML = content;
             
-            // Aplicar colores según la variante (usando globalColors que puede ser branding o default)
+            // Aplicar colores según la variante
             const style = preview.style;
             switch(buttonConfig.variant) {
                 case 'primary':
@@ -1657,6 +1688,19 @@ figma.ui.onmessage = async (msg: { type: string, config?: any, colors?: any }) =
     // Add disabled state if needed
     if (config.state === 'disabled') {
       button.opacity = 0.5;
+    }
+    
+    // Apply border style
+    switch(config.borderStyle) {
+      case 'default':
+        button.cornerRadius = 6;
+        break;
+      case 'square':
+        button.cornerRadius = 0;
+        break;
+      case 'pill':
+        button.cornerRadius = 100;
+        break;
     }
     
     figma.currentPage.appendChild(button);
