@@ -758,6 +758,30 @@ const html = `
         .footer a:hover {
             opacity: 0.7;
         }
+
+        /* Estilos para el botón de regreso */
+        .back-button {
+            background: none;
+            border: none;
+            color: var(--figma-color-text);
+            padding: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: opacity 0.2s;
+            margin-bottom: 16px;
+        }
+
+        .back-button:hover {
+            opacity: 0.7;
+        }
+
+        .back-button svg {
+            width: 20px;
+            height: 20px;
+        }
     </style>
 </head>
 <body>
@@ -850,6 +874,12 @@ const html = `
     <!-- Configurador de Botón -->
     <div class="component-config" id="buttonConfig">
         <div class="preview-panel">
+            <button class="back-button" onclick="closeButtonConfig()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Back to Menu
+            </button>
             <div class="preview-header">
                 <div class="preview-title">Button Preview</div>
                 <div class="preview-subtitle">Interactive preview of your button component</div>
@@ -1074,6 +1104,7 @@ const html = `
         function closeButtonConfig() {
             const config = document.getElementById('buttonConfig');
             config.classList.remove('show');
+            openAtomsModal(); // Show the atoms modal after closing the button config
         }
 
         function updateSelectedOption(section, value) {
@@ -1247,7 +1278,7 @@ const html = `
                     colors: globalColors
                 }
             }, '*');
-            closeButtonConfig();
+            // Se elimina closeButtonConfig() para que la interfaz se mantenga abierta
         }
 
         // Funciones para el modal de branding
