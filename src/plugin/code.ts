@@ -20,6 +20,9 @@ const html = `
             width: 100%;
             height: 100vh;
             overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
         #root {
             width: 100%;
@@ -27,6 +30,9 @@ const html = `
             padding: 20px;
             overflow-y: auto;
             overflow-x: hidden;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
         .header {
             padding-bottom: 20px;
@@ -408,7 +414,7 @@ const html = `
         .preview-button {
             padding: 8px 16px; /* Tamaño medium por defecto */
             border-radius: 6px;
-            font-size: 14px;
+            font-size: var(--min-font-size);
             font-weight: 500;
             cursor: pointer;
             display: inline-flex;
@@ -423,7 +429,7 @@ const html = `
         /* Small */
         .preview-button.sm {
             padding: 6px 12px;
-            font-size: 13px;
+            font-size: max(13px, var(--min-font-size));
             height: 32px;
             gap: 6px;
         }
@@ -436,9 +442,9 @@ const html = `
 
         /* Large */
         .preview-button.lg {
-            padding: 10px 20px;
-            font-size: 15px;
-            height: 40px;
+            padding: 16px 20px;
+            font-size: max(16px, var(--min-font-size));
+            height: 48px;
             gap: 10px;
         }
         .preview-button.lg svg {
@@ -452,10 +458,10 @@ const html = `
             height: auto;
         }
         .preview-button.link.sm {
-            font-size: 13px;
+            font-size: max(13px, var(--min-font-size));
         }
         .preview-button.link.lg {
-            font-size: 15px;
+            font-size: max(16px, var(--min-font-size));
         }
 
         /* Primary Button */
@@ -540,6 +546,23 @@ const html = `
         @keyframes spin {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
+        }
+        
+        /* Estilos específicos para el color del texto */
+        .preview-button[data-text-color="dark"] {
+            color: #333333 !important;
+        }
+        
+        .preview-button[data-text-color="dark"] svg {
+            stroke: #333333 !important;
+        }
+        
+        .preview-button[data-text-color="light"] {
+            color: #FFFFFF !important;
+        }
+        
+        .preview-button[data-text-color="light"] svg {
+            stroke: #FFFFFF !important;
         }
         
         .generate-button-fixed {
@@ -696,6 +719,32 @@ const html = `
             background: var(--figma-color-bg-brand);
             color: var(--figma-color-text-onbrand);
         }
+
+        /* Configuración global de texto */
+        :root {
+            --min-font-size: 15px;
+        }
+
+        /* Estilos para el footer */
+        .footer {
+            text-align: center;
+            padding: 20px 0;
+            margin-top: auto;
+            width: 100%;
+            color: var(--figma-color-text);
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .footer a {
+            color: var(--figma-color-text);
+            text-decoration: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .footer a:hover {
+            opacity: 0.7;
+        }
     </style>
 </head>
 <body>
@@ -831,6 +880,14 @@ const html = `
             </div>
 
             <div class="config-section">
+                <h4 class="config-section-title">Text Color</h4>
+                <div class="variant-grid">
+                    <div class="variant-option selected" onclick="updateTextColor('dark', this)">Dark Text</div>
+                    <div class="variant-option" onclick="updateTextColor('light', this)">Light Text</div>
+                </div>
+            </div>
+
+            <div class="config-section">
                 <h4 class="config-section-title">Content</h4>
                 <div class="config-row">
                     <label class="config-label">Button Text</label>
@@ -936,6 +993,11 @@ const html = `
         </div>
     </div>
 
+    <!-- Footer con copyright -->
+    <footer class="footer">
+        &copy; 2024 Designed and developed by <a href="https://www.linkedin.com/in/alexandersstudio/" target="_blank" rel="noopener noreferrer">Alexander</a> with &hearts;
+    </footer>
+
     <script>
         let buttonConfig = {
             variant: 'primary',
@@ -944,18 +1006,22 @@ const html = `
             hasIcon: false,
             iconPosition: 'left',
             state: 'default',
-            width: 'hug'
+            width: 'hug',
+            textColor: 'dark'  // Valor por defecto
         };
 
-        // Configuración global de colores
-        let globalColors = {
-            primary: '#0c8ce9',
-            secondary: '#6c757d',
-            tertiary: '#394360',
-            success: '#198f51',
-            warning: '#f3c11b',
-            danger: '#e03e1a'
+        // Configuración global de colores por defecto
+        let defaultColors = {
+            primary: '#0D99FF',    // Azul brillante para acciones principales
+            secondary: '#6C757D',  // Gris neutro para acciones secundarias
+            tertiary: '#394360',   // Azul oscuro para elementos terciarios
+            success: '#198754',    // Verde para éxito
+            warning: '#FFC107',    // Amarillo para advertencias
+            danger: '#DC3545'      // Rojo para errores/destructivo
         };
+
+        // Colores actuales (pueden ser branding o default)
+        let globalColors = { ...defaultColors };
 
         // Funciones para el modal de átomos
         function openAtomsModal() {
@@ -1044,29 +1110,47 @@ const html = `
             updatePreview();
         }
 
+        function updateTextColor(color, element) {
+            // Actualizar la configuración
+            buttonConfig.textColor = color;
+            
+            // Actualizar la selección visual
+            updateTextColorSelection(element);
+            
+            // Actualizar el preview
+            updatePreview();
+        }
+
+        function updateTextColorSelection(selectedElement) {
+            // Remover la selección de todos los botones de color de texto
+            const allOptions = selectedElement.parentElement.querySelectorAll('.variant-option');
+            allOptions.forEach(opt => opt.classList.remove('selected'));
+            
+            // Agregar la selección al botón clickeado
+            selectedElement.classList.add('selected');
+        }
+
         function updatePreview() {
             const preview = document.getElementById('buttonPreview');
             
             // Reset classes and styles
             preview.className = 'preview-button';
-            preview.style.background = 'none';
-            preview.style.backgroundColor = 'transparent';
-            preview.style.borderColor = 'transparent';
-            preview.style.color = '';
             
-            // Add variant
-            preview.classList.add(buttonConfig.variant);
-            
-            // Add size
+            // Aplicar clases según la configuración
             preview.classList.add(buttonConfig.size);
-            
-            // Add state
+            preview.classList.add(buttonConfig.variant);
             preview.classList.add(buttonConfig.state);
             
-            // Update width
-            preview.style.width = buttonConfig.width === 'full' ? '100%' : 'auto';
+            // Establecer el color del texto usando data-attribute
+            preview.setAttribute('data-text-color', buttonConfig.textColor);
             
-            // Update content
+            if (buttonConfig.width === 'full') {
+                preview.style.width = '100%';
+            } else {
+                preview.style.width = 'auto';
+            }
+            
+            // Actualizar el contenido
             let content = '';
             
             // Add loading spinner if needed
@@ -1088,42 +1172,39 @@ const html = `
             
             preview.innerHTML = content;
             
-            // Actualizar colores según el branding si está disponible
-            const selectedOption = document.querySelector('.branding-option.selected');
-            if (selectedOption && selectedOption.textContent === 'Yes') {
-                const style = preview.style;
-                switch(buttonConfig.variant) {
-                    case 'primary':
-                        style.background = globalColors.primary;
-                        style.color = 'white';
-                        style.borderColor = 'transparent';
-                        break;
-                    case 'secondary':
-                        style.background = globalColors.secondary;
-                        style.color = 'white';
-                        style.borderColor = 'transparent';
-                        break;
-                    case 'primary-outline':
-                        style.background = 'none';
-                        style.borderColor = globalColors.primary;
-                        style.color = globalColors.primary;
-                        break;
-                    case 'secondary-outline':
-                        style.background = 'none';
-                        style.borderColor = globalColors.secondary;
-                        style.color = globalColors.secondary;
-                        break;
-                    case 'destructive':
-                        style.background = globalColors.danger;
-                        style.color = 'white';
-                        style.borderColor = 'transparent';
-                        break;
-                    case 'link':
-                        style.background = 'none';
-                        style.color = globalColors.primary;
-                        style.borderColor = 'transparent';
-                        break;
-                }
+            // Aplicar colores según la variante (usando globalColors que puede ser branding o default)
+            const style = preview.style;
+            switch(buttonConfig.variant) {
+                case 'primary':
+                    style.background = globalColors.primary;
+                    style.color = 'white';
+                    style.borderColor = 'transparent';
+                    break;
+                case 'secondary':
+                    style.background = globalColors.secondary;
+                    style.color = 'white';
+                    style.borderColor = 'transparent';
+                    break;
+                case 'primary-outline':
+                    style.background = 'none';
+                    style.borderColor = globalColors.primary;
+                    style.color = globalColors.primary;
+                    break;
+                case 'secondary-outline':
+                    style.background = 'none';
+                    style.borderColor = globalColors.secondary;
+                    style.color = globalColors.secondary;
+                    break;
+                case 'destructive':
+                    style.background = globalColors.danger;
+                    style.color = 'white';
+                    style.borderColor = 'transparent';
+                    break;
+                case 'link':
+                    style.background = 'none';
+                    style.color = globalColors.primary;
+                    style.borderColor = 'transparent';
+                    break;
             }
         }
 
@@ -1131,7 +1212,8 @@ const html = `
             parent.postMessage({ 
                 pluginMessage: { 
                     type: 'create-button',
-                    config: buttonConfig
+                    config: buttonConfig,
+                    colors: globalColors
                 }
             }, '*');
             closeButtonConfig();
@@ -1166,26 +1248,41 @@ const html = `
             if (colorFields) {
                 colorFields.style.display = option === 'yes' ? 'flex' : 'none';
             }
+
+            // Si selecciona 'no', restaurar colores por defecto
+            if (option === 'no') {
+                globalColors = { ...defaultColors };
+                updatePreview();
+            }
         }
 
         function confirmBranding() {
             console.log('Confirming branding...');
             const selectedOption = document.querySelector('.branding-option.selected');
-            if (selectedOption && selectedOption.textContent === 'Yes') {
-                const colors = {
-                    primary: document.getElementById('primary-color')?.value || globalColors.primary,
-                    secondary: document.getElementById('secondary-color')?.value || globalColors.secondary,
-                    tertiary: document.getElementById('tertiary-color')?.value || globalColors.tertiary,
-                    success: globalColors.success,
-                    warning: globalColors.warning,
-                    danger: globalColors.danger
-                };
+            
+            if (selectedOption) {
+                if (selectedOption.textContent === 'Yes') {
+                    // Actualizar con colores personalizados
+                    const colors = {
+                        primary: document.getElementById('primary-color')?.value || defaultColors.primary,
+                        secondary: document.getElementById('secondary-color')?.value || defaultColors.secondary,
+                        tertiary: document.getElementById('tertiary-color')?.value || defaultColors.tertiary,
+                        success: defaultColors.success,
+                        warning: defaultColors.warning,
+                        danger: defaultColors.danger
+                    };
+
+                    globalColors = colors;
+                } else {
+                    // Usar colores por defecto
+                    globalColors = { ...defaultColors };
+                }
 
                 // Update color previews
-                Object.keys(colors).forEach(key => {
+                Object.keys(globalColors).forEach(key => {
                     const preview = document.getElementById(key + '-color-preview');
                     if (preview) {
-                        preview.style.backgroundColor = colors[key];
+                        preview.style.backgroundColor = globalColors[key];
                     }
                 });
 
@@ -1193,11 +1290,10 @@ const html = `
                 parent.postMessage({ 
                     pluginMessage: { 
                         type: 'save-colors',
-                        colors: colors
+                        colors: globalColors
                     }
                 }, '*');
                 
-                globalColors = colors;
                 console.log('Updated global colors:', globalColors);
             }
             
@@ -1379,10 +1475,26 @@ figma.showUI(html, {
   themeColors: true
 });
 
-figma.ui.onmessage = async (msg: { type: string, config?: any }) => {
+figma.ui.onmessage = async (msg: { type: string, config?: any, colors?: any }) => {
   if (msg.type === 'create-button') {
     const config = msg.config || {};
-    
+    const colors = msg.colors || {
+        primary: '#0D99FF',    // Azul brillante para acciones principales
+        secondary: '#6C757D',  // Gris neutro para acciones secundarias
+        tertiary: '#394360',   // Azul oscuro para elementos terciarios
+        success: '#198754',    // Verde para éxito
+        warning: '#FFC107',    // Amarillo para advertencias
+        danger: '#DC3545'      // Rojo para errores/destructivo
+    };
+
+    // Helper function to convert hex to RGB
+    function hexToRgb(hex: string): { r: number; g: number; b: number } {
+        const r = parseInt(hex.slice(1, 3), 16) / 255;
+        const g = parseInt(hex.slice(3, 5), 16) / 255;
+        const b = parseInt(hex.slice(5, 7), 16) / 255;
+        return { r, g, b };
+    }
+
     // Create a single frame for the button
     const button = figma.createFrame();
     button.name = "Button";
@@ -1403,25 +1515,25 @@ figma.ui.onmessage = async (msg: { type: string, config?: any }) => {
     // Apply variant styles
     switch(config.variant) {
       case 'primary':
-        button.fills = [{type: 'SOLID', color: {r: 0.05, g: 0.6, b: 1}}];
+        button.fills = [{type: 'SOLID', color: hexToRgb(colors.primary)}];
         button.strokes = [];
         break;
       case 'secondary':
-        button.fills = [{type: 'SOLID', color: {r: 0.8, g: 0.8, b: 0.8}}];
+        button.fills = [{type: 'SOLID', color: hexToRgb(colors.secondary)}];
         button.strokes = [];
         break;
       case 'secondary-outline':
         button.fills = [];
-        button.strokes = [{type: 'SOLID', color: {r: 0.8, g: 0.8, b: 0.8}}];
+        button.strokes = [{type: 'SOLID', color: hexToRgb(colors.secondary)}];
         button.strokeWeight = 1;
         break;
       case 'primary-outline':
         button.fills = [];
-        button.strokes = [{type: 'SOLID', color: {r: 0.05, g: 0.6, b: 1}}];
+        button.strokes = [{type: 'SOLID', color: hexToRgb(colors.primary)}];
         button.strokeWeight = 1;
         break;
       case 'destructive':
-        button.fills = [{type: 'SOLID', color: {r: 0.937, g: 0.267, b: 0.267}}];
+        button.fills = [{type: 'SOLID', color: hexToRgb(colors.danger)}];
         button.strokes = [];
         break;
       case 'link':
@@ -1442,8 +1554,8 @@ figma.ui.onmessage = async (msg: { type: string, config?: any }) => {
       case 'lg':
         button.paddingLeft = 20;
         button.paddingRight = 20;
-        button.paddingTop = 10;
-        button.paddingBottom = 10;
+        button.paddingTop = 16;
+        button.paddingBottom = 16;
         button.itemSpacing = 10;
         break;
     }
@@ -1455,6 +1567,17 @@ figma.ui.onmessage = async (msg: { type: string, config?: any }) => {
           <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" fill="none"/>
         </svg>
       `);
+      
+      // Aplicar el color al vector dentro del icono
+      const iconColor = config.textColor === 'dark' 
+          ? {r: 51/255, g: 51/255, b: 51/255}  // #333333
+          : {r: 1, g: 1, b: 1};                // #FFFFFF
+      
+      // Encontrar y colorear el vector dentro del icono
+      icon.findAll(node => node.type === "VECTOR").forEach(vector => {
+        (vector as VectorNode).strokes = [{type: 'SOLID', color: iconColor}];
+      });
+      
       button.appendChild(icon);
     }
     
@@ -1464,14 +1587,33 @@ figma.ui.onmessage = async (msg: { type: string, config?: any }) => {
     text.fontName = { family: "Inter", style: "Medium" };
     text.characters = config.text || "Button";
     
-    // Set text color based on variant
-    if (config.variant === 'primary' || config.variant === 'destructive') {
-      text.fills = [{type: 'SOLID', color: {r: 1, g: 1, b: 1}}];
-    } else if (config.variant === 'link') {
-      text.fills = [{type: 'SOLID', color: {r: 0.05, g: 0.6, b: 1}}];
-    } else {
-      text.fills = [{type: 'SOLID', color: {r: 0.1, g: 0.1, b: 0.1}}];
+    // Establecer el tamaño mínimo de texto
+    const MIN_FONT_SIZE = 15;
+    
+    // Determinar el tamaño de fuente basado en el tamaño del botón
+    let fontSize = MIN_FONT_SIZE;
+    switch(config.size) {
+      case 'sm':
+        fontSize = Math.max(13, MIN_FONT_SIZE);
+        break;
+      case 'md':
+        fontSize = Math.max(14, MIN_FONT_SIZE);
+        break;
+      case 'lg':
+        fontSize = Math.max(16, MIN_FONT_SIZE);
+        break;
+      default:
+        fontSize = MIN_FONT_SIZE;
     }
+    
+    // Aplicar el tamaño de fuente
+    text.fontSize = fontSize;
+    
+    // Set text color based on configuration
+    const textColor = config.textColor === 'dark' 
+        ? {r: 51/255, g: 51/255, b: 51/255}  // #333333
+        : {r: 1, g: 1, b: 1};                // #FFFFFF
+    text.fills = [{type: 'SOLID', color: textColor}];
     
     button.appendChild(text);
     
@@ -1482,6 +1624,17 @@ figma.ui.onmessage = async (msg: { type: string, config?: any }) => {
           <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" fill="none"/>
         </svg>
       `);
+      
+      // Aplicar el color al vector dentro del icono
+      const iconColor = config.textColor === 'dark' 
+          ? {r: 51/255, g: 51/255, b: 51/255}  // #333333
+          : {r: 1, g: 1, b: 1};                // #FFFFFF
+      
+      // Encontrar y colorear el vector dentro del icono
+      icon.findAll(node => node.type === "VECTOR").forEach(vector => {
+        (vector as VectorNode).strokes = [{type: 'SOLID', color: iconColor}];
+      });
+      
       button.appendChild(icon);
     }
     
